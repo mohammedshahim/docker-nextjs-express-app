@@ -1,0 +1,15 @@
+version: "3"
+services:
+  express-app:
+    build:
+      context: .
+      dockerfile: express.Dockerfile
+    ports:
+      - 4000:4000
+
+  next-app:
+    build:
+      context: .
+      dockerfile: next.Dockerfile
+    ports:
+      - 3000:3000
