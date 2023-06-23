@@ -10,16 +10,16 @@ List any prerequisites or dependencies required to run the project, such as Node
 
 ### Run with Docker
 
-    ```
+    ```bash
         docker-compose up
     ```
 
     Access your Express.js application by opening a web browser and visiting
-    ```
+    ```bash
         http://localhost:4000.
     ```
 
     Access your Next.js application by opening a web browser and visiting
-    ```
+    ```bash
         http://localhost:3000.
     ```
