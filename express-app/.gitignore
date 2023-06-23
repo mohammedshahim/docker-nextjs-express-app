@@ -1,0 +1,30 @@
+# Ignore node_modules directory
+node_modules/
+
+# Ignore environment-specific files
+.env
+
+# Ignore logs
+logs/
+
+# Ignore yarn lock file
+yarn.lock
+
+# Ignore IDE and editor files
+.vscode/
+.idea/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore test coverage reports
+coverage/
+
+# Ignore generated build artifacts
+dist/
+
+# Ignore deployment-specific files
+deploy/
+
+# Ignore any other files or directories specific to your Express.js app
