@@ -1,12 +1,20 @@
 const express = require("express");
+const axios = require("axios");
 const app = express();
+const cors = require("cors");
 
 // Middleware
 app.use(express.json());
 
+// Cors
+app.use(cors());
+
 // Routes
-app.get("/", (req, res) => {
-  res.send("Hello, Express!");
+app.get("/", async (req, res) => {
+  const { data } = await axios.get(
+    "https://jsonplaceholder.typicode.com/posts"
+  );
+  res.json({ data });
 });
 
 // Start the server
