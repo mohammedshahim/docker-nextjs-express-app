@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const list = () => {
-  const [posts, setPosts] = useState([]);
-  const getData = async () => {
-    const { data } = await axios.get("http://localhost:4000");
-    setPosts(data.data);
+export async function getStaticProps() {
+  // Fetch data from an API or any other data source
+  const { data } = await axios.get("http://localhost:4000");
+
+  // Return the fetched data as props
+  return {
+    props: {
+      data: data.data,
+    },
   };
+}
 
-  useEffect(() => {
-    getData();
-  }, []);
-
+const list = ({ data }) => {
   return (
     <div>
       <table style={{ borderCollapse: "collapse", border: "1px solid black" }}>
@@ -27,7 +29,7 @@ const list = () => {
           </tr>
         </thead>
         <tbody>
-          {posts.map((post, idx) => (
+          {data.map((post, idx) => (
             <tr key={idx}>
               <td style={{ border: "1px solid black", padding: "8px" }}>
                 {post.userId}
