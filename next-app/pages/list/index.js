@@ -16,6 +16,7 @@ export async function getStaticProps() {
 const list = ({ data }) => {
   return (
     <div>
+      Hello World
       <table style={{ borderCollapse: "collapse", border: "1px solid black" }}>
         <thead>
           <tr>

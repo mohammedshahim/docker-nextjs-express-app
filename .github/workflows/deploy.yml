@@ -1,0 +1,49 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ secrets.ECR_IMAGE_NAME }} .
+          docker tag ${{ secrets.ECR_IMAGE_NAME }}:latest ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
+          docker push ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
+
+      - name: SSH into EC2 Instance
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_INSTANCE_IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+
+        env:
+          DOCKER_IMAGE_NAME: ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
+          P1: ${{ secrets.P1 }}
+          P2: ${{ secrets.P2 }}
+
+        run: |
+          docker stop ${{ secrets.CONTAINER_NAME }} || true
+          docker rm ${{ secrets.CONTAINER_NAME }} || true
+          docker pull $DOCKER_IMAGE_NAME
+          docker run -d -p $P1:$P1 -p $P2:$P2 --name ${{ secrets.CONTAINER_NAME }} $DOCKER_IMAGE_NAME
