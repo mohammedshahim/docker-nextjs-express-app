@@ -13,20 +13,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Create AWS Configuration Directory
-        run: mkdir -p ~/.aws
-
       - name: Configure AWS Credentials
-        run: |
-          echo "[default]" >> ~/.aws/credentials
-          echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
-          echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
-          echo "[default]" >> ~/.aws/config
-          echo "region=${{ secrets.AWS_REGION }}" >> ~/.aws/config
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build and Push Docker Image
         run: |
@@ -52,5 +48,12 @@ jobs:
           P1: ${{ secrets.P1 }}
           P2: ${{ secrets.P2 }}
         run: |
+          # setup aws configure
+          sudo aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          sudo aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          sudo aws configure set default.region ${{ secrets.AWS_REGION }}
+
+          # login to aws ecr
+          sudo aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
           sudo docker pull $DOCKER_IMAGE_NAME
           sudo docker run -d -p $P1:$P1 -p $P2:$P2 --name ${{ secrets.CONTAINER_NAME }} $DOCKER_IMAGE_NAME
