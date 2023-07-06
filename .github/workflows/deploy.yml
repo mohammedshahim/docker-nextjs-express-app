@@ -24,8 +24,10 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         with:
-          region: ${{ secrets.AWS_REGION }}
-          registry-type: private
+          registry: ${{ secrets.AWS_ECR_URL }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Build and Push Docker Image
         run: |
@@ -51,6 +53,7 @@ jobs:
           P1: ${{ secrets.P1 }}
           P2: ${{ secrets.P2 }}
         run: |
-          sudo aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
+          AWS_ECR_LOGIN=$(aws ecr get-login-password --region ${{ secrets.AWS_REGION }})
+          echo "$AWS_ECR_LOGIN" | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
           sudo docker pull $DOCKER_IMAGE_NAME
           sudo docker run -d -p $P1:$P1 -p $P2:$P2 --name ${{ secrets.CONTAINER_NAME }} $DOCKER_IMAGE_NAME
