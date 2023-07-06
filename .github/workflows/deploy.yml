@@ -13,16 +13,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
+      - name: Create AWS Configuration Directory
+        run: mkdir -p ~/.aws
+
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+        run: |
+          echo "[default]" >> ~/.aws/credentials
+          echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+          echo "[default]" >> ~/.aws/config
+          echo "region=${{ secrets.AWS_REGION }}" >> ~/.aws/config
 
       - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
 
       - name: Build and Push Docker Image
         run: |
@@ -42,10 +46,6 @@ jobs:
           sudo docker stop ${{ secrets.CONTAINER_NAME }} || true
           sudo docker rm ${{ secrets.CONTAINER_NAME }} || true
 
-      - name: Login to Docker Registry
-        run: |
-          sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-
       - name: Pull and Run New Container
         env:
           DOCKER_IMAGE_NAME: ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
@@ -53,4 +53,4 @@ jobs:
           P2: ${{ secrets.P2 }}
         run: |
           sudo docker pull $DOCKER_IMAGE_NAME
-          sudo docker run -d -p $P1:$P1 -p $P2:$P2 --name <CONTAINER_NAME> $DOCKER_IMAGE_NAME
+          sudo docker run -d -p $P1:$P1 -p $P2:$P2 --name ${{ secrets.CONTAINER_NAME }} $DOCKER_IMAGE_NAME
