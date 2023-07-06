@@ -57,3 +57,5 @@ jobs:
           echo "$AWS_ECR_LOGIN" | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
           sudo docker pull $DOCKER_IMAGE_NAME
           sudo docker run -d -p $P1:$P1 -p $P2:$P2 --name ${{ secrets.CONTAINER_NAME }} $DOCKER_IMAGE_NAME
+
+#
