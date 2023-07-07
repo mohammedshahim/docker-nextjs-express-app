@@ -29,15 +29,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Build and Push Docker Image
-        run: |
-          docker build -t ${{ secrets.ECR_IMAGE_NAME }} .
-          docker tag ${{ secrets.ECR_IMAGE_NAME }}:latest ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
-          docker push ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
+      # - name: Build and Push Docker Image
+      #   run: |
+      #     docker build -t ${{ secrets.ECR_IMAGE_NAME }} .
+      #     docker tag ${{ secrets.ECR_IMAGE_NAME }}:latest ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
+      #     docker push ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
 
       #  i need to connect with ec2 ubuntu server and then i need to run 470812156695.dkr.ecr.ap-south-1.amazonaws.com/node-next-app:latest private docker
 
       - name: Deploy to EC2
         run: |
+          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY }} ubuntu@${{ secrets.EC2_INSTANCE_IP }} "aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}"
+          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY }} ubuntu@${{ secrets.EC2_INSTANCE_IP }} "docker login"
           ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY }} ubuntu@${{ secrets.EC2_INSTANCE_IP }} "docker pull ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest"
           ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY }} ubuntu@${{ secrets.EC2_INSTANCE_IP }} "docker run -d -p 3000:3000 ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest"
