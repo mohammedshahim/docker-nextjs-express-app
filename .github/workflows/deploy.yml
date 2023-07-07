@@ -24,10 +24,6 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Remove old Docker images
-        run: |
-          docker images --format '{{.Repository}}:{{.Tag}}' | grep -v ":latest" | awk '{print $1":"$2}' | xargs -I {} sh -c 'docker rmi --force $1' sh {}
-
       - name: Build and Push Docker Image
         run: |
           docker build -t ${{ secrets.ECR_IMAGE_NAME }} .
