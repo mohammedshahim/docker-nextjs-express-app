@@ -35,23 +35,9 @@ jobs:
           docker tag ${{ secrets.ECR_IMAGE_NAME }}:latest ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
           docker push ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
 
-      - name: SSH into EC2 Instance
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_INSTANCE_IP }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+      #  i need to connect with ec2 ubuntu server and then i need to run 470812156695.dkr.ecr.ap-south-1.amazonaws.com/node-next-app:latest private docker
 
-      - name: Stop and Remove Previous Container
+      - name: Deploy to EC2
         run: |
-          sudo docker stop ${{ secrets.CONTAINER_NAME }} || true
-          sudo docker rm ${{ secrets.CONTAINER_NAME }} || true
-
-      - name: Pull and Run New Container
-        env:
-          DOCKER_IMAGE_NAME: ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
-        run: |
-          sudo aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
-          sudo docker login
-          sudo docker pull $DOCKER_IMAGE_NAME
-          sudo docker run -d -p 3000:3000 -p 4000:4000 --name ${{ secrets.CONTAINER_NAME }} $DOCKER_IMAGE_NAME
+          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY }} ubuntu@${{ secrets.EC2_INSTANCE_IP }} "docker pull ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest"
+          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY }} ubuntu@${{ secrets.EC2_INSTANCE_IP }} "docker run -d -p 3000:3000 ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest"
