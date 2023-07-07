@@ -50,9 +50,7 @@ jobs:
       - name: Pull and Run New Container
         env:
           DOCKER_IMAGE_NAME: ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
-          P1: ${{ secrets.P1 }}
-          P2: ${{ secrets.P2 }}
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
+          sudo aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
           sudo docker pull $DOCKER_IMAGE_NAME
-          sudo docker run -d -p $P1:$P1 -p $P2:$P2 --name ${{ secrets.CONTAINER_NAME }} $DOCKER_IMAGE_NAME
+          sudo docker run -d -p 3000:3000 -p 4000:4000 --name ${{ secrets.CONTAINER_NAME }} $DOCKER_IMAGE_NAME
