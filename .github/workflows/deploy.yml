@@ -24,6 +24,12 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ secrets.ECR_IMAGE_NAME }} .
+          docker tag ${{ secrets.ECR_IMAGE_NAME }}:latest ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
+          docker push ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
+
       - name: Deploy docker image in EC2
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
