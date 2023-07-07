@@ -30,6 +30,21 @@ jobs:
           docker tag ${{ secrets.ECR_IMAGE_NAME }}:latest ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
           docker push ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
 
+      - name: Remove old Docker images
+        run: |
+          docker images --format '{{.Repository}}:{{.Tag}}' | grep -v ":latest" | awk '{print $1":"$2}' | xargs -I {} docker rmi {}
+
+      - name: Remove old Docker image from EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_INSTANCE_IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            sudo docker stop webapp || true
+            sudo docker rm webapp || true
+            sudo docker rmi ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
+
       - name: Deploy docker image in EC2
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -53,7 +68,6 @@ jobs:
             sudo apt update
             sudo apt install docker.io -y
             sudo apt install awscli -y
-            sudo docker stop webapp || true
-            sudo docker rm webapp || true
+            sudo docker rmi ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
             sudo docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
             sudo docker run -d --name webapp -p 3000:3000 -p 4000:4000 ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
