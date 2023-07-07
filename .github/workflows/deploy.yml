@@ -53,6 +53,8 @@ jobs:
             sudo apt update
             sudo apt install docker.io -y
             sudo apt install awscli -y
+            sudo docker stop webapp
+            sudo docker rm webapp
             sudo docker rmi ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
             sudo docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
             sudo docker run -d --name webapp -p 3000:3000 -p 4000:4000 ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
