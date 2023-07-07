@@ -29,6 +29,6 @@ jobs:
 
       - name: Pull and run Docker image on EC2
         run: |
-          echo $(aws ecr get-login-password --region ${{ secrets.AWS_REGION }}) | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
-          docker pull ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
-          docker run -d -p 3000:3000 -p 4000:4000 --name ${{ secrets.CONTAINER_NAME }} ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
+          echo $(aws ecr get-login-password --region ap-south-1) | docker login --username AWS --password-stdin 470812156695.dkr.ecr.ap-south-1.amazonaws.com
+          docker pull 470812156695.dkr.ecr.ap-south-1.amazonaws.com/node-next-app:latest
+          sudo docker run -d -p 3000:3000 -p 4000:4000 --name webapp 470812156695.dkr.ecr.ap-south-1.amazonaws.com/node-next-app:latest
