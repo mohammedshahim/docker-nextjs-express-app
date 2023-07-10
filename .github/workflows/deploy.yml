@@ -54,17 +54,22 @@ jobs:
             export ECR_REPOSITORY=${{ secrets.ECR_IMAGE_NAME }}
             export IMAGE_TAG=${{ github.sha }}
           script: |
+            script: |
             sudo apt update
             sudo apt install docker.io -y
             sudo apt install awscli -y
             sudo docker stop ${{ secrets.CONTAINER_NAME }} || true
             sudo docker rm ${{ secrets.CONTAINER_NAME }} || true
-            sudo bash -c 'echo "[default]" > ~/.aws/config'
-            sudo bash -c 'echo "region = ${AWS_DEFAULT_REGION}" >> ~/.aws/config'
-            sudo bash -c 'echo "output = json" >> ~/.aws/config'
-            sudo bash -c 'echo "[default]" > ~/.aws/credentials'
-            sudo bash -c 'echo "aws_access_key_id = ${AWS_ACCESS_KEY_ID}" >> ~/.aws/credentials'
-            sudo bash -c 'echo "aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}" >> ~/.aws/credentials'
+            sudo mkdir -p /root/.aws
+            echo "[default]" | sudo tee /root/.aws/config
+            echo "region = ${AWS_REGION}" | sudo tee -a /root/.aws/config
+            echo "output = json" | sudo tee -a /root/.aws/config
+            echo "[default]" | sudo tee /root/.aws/credentials
+            echo "aws_access_key_id = ${AWS_ACCESS_KEY_ID}" | sudo tee -a /root/.aws/credentials
+            echo "aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}" | sudo tee -a /root/.aws/credentials
+            sudo chown -R $USER:$USER /root/.aws
+            export AWS_CONFIG_FILE="/root/.aws/config"
+            export AWS_SHARED_CREDENTIALS_FILE="/root/.aws/credentials"
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
             sudo docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
             sudo docker run -d --name ${{ secrets.CONTAINER_NAME }} -p 3000:3000 -p 4000:4000 ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
