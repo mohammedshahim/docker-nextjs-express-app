@@ -24,37 +24,41 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Delete existing image from ECR if exists
+        run: |
+          aws ecr batch-delete-image --repository-name ${{ secrets.ECR_IMAGE_NAME }} --image-ids imageTag=latest
+
       - name: Build and Push Docker Image
         run: |
           docker build -t ${{ secrets.ECR_IMAGE_NAME }} .
           docker tag ${{ secrets.ECR_IMAGE_NAME }}:latest ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
           docker push ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
 
-      - name: Deploy docker image in EC2
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ secrets.ECR_IMAGE_NAME }}
-          IMAGE_TAG: ${{ github.sha }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+      # - name: Deploy docker image in EC2
+      #   env:
+      #     REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #     REPOSITORY: ${{ secrets.ECR_IMAGE_NAME }}
+      #     IMAGE_TAG: ${{ github.sha }}
+      #     AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
 
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_INSTANCE_IP }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          envs: |
-            export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-            export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            export AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }}
-            export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-            export ECR_REPOSITORY=${{ secrets.ECR_IMAGE_NAME }}
-            export IMAGE_TAG=${{ github.sha }}
-          script: |
-            sudo apt update
-            sudo apt install docker.io -y
-            sudo apt install awscli -y
-            sudo docker stop webapp
-            sudo docker rm webapp
-            sudo docker rmi ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
-            sudo docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
-            sudo docker run -d --name webapp -p 3000:3000 -p 4000:4000 ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.EC2_INSTANCE_IP }}
+      #     username: ${{ secrets.EC2_USERNAME }}
+      #     key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+      #     envs: |
+      #       export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+      #       export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #       export AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }}
+      #       export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+      #       export ECR_REPOSITORY=${{ secrets.ECR_IMAGE_NAME }}
+      #       export IMAGE_TAG=${{ github.sha }}
+      #     script: |
+      #       sudo apt update
+      #       sudo apt install docker.io -y
+      #       sudo apt install awscli -y
+      #       sudo docker stop webapp
+      #       sudo docker rm webapp
+      #       sudo docker rmi ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
+      #       sudo docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
+      #       sudo docker run -d --name webapp -p 3000:3000 -p 4000:4000 ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
