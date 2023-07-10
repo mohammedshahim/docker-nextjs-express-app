@@ -57,10 +57,10 @@ jobs:
             sudo apt update
             sudo apt install docker.io -y
             sudo apt install awscli -y
-            sudo docker login -u ${{ secrets.AWS_ACCESS_KEY_ID }} -p ${{ secrets.AWS_SECRET_ACCESS_KEY }} ${{ steps.login-ecr.outputs.registry }}
-            sudo docker stop ${{ secrets.CONTAINER_NAME }}
-            sudo docker rm ${{ secrets.CONTAINER_NAME }}
-            sudo docker rmi ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
+            sudo aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            sudo docker stop ${{ secrets.CONTAINER_NAME }} || true
+            sudo docker rm ${{ secrets.CONTAINER_NAME }} || true
+            sudo docker rmi ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest || true
             sudo docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
             sudo docker run -d --name ${{ secrets.CONTAINER_NAME }} -p 3000:3000 -p 4000:4000 ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
 
