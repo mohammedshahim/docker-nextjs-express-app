@@ -59,6 +59,6 @@ jobs:
             sudo apt install awscli -y
             sudo docker stop ${{ secrets.CONTAINER_NAME }} || true
             sudo docker rm ${{ secrets.CONTAINER_NAME }} || true
-            sudo aws ecr get-login-password --region ap-south-1 | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            sudo aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
             sudo docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
             sudo docker run -d --name ${{ secrets.CONTAINER_NAME }} -p 3000:3000 -p 4000:4000 ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_IMAGE_NAME }}:latest
