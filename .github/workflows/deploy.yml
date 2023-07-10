@@ -57,7 +57,6 @@ jobs:
             sudo apt update
             sudo apt install docker.io -y
             sudo apt install awscli -y
-            sudo docker login
             sudo docker stop ${{ secrets.CONTAINER_NAME }}
             sudo docker rm ${{ secrets.CONTAINER_NAME }}
             sudo docker rmi ${{ secrets.AWS_ECR_URL }}/${{ secrets.ECR_IMAGE_NAME }}:latest
