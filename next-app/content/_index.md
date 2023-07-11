@@ -1,6 +1,6 @@
 ---
 banner:
-  title: Al Mashhad TV
+  title: Al Mashhad TV TEST
   content: Lorem ipsum dolor sit amet consectetur adipisicing elit. Quam nihil enim maxime corporis cumque <br/> totam aliquid nam sint inventore optio modi neque laborum officiis necessitatibus
   image: /images/banner-art.svg
   button:
